@@ -1,17 +1,33 @@
-import { inject, onMounted } from 'vue'
+import { inject, onMounted, shallowRef, toRef, watch, h } from 'vue'
 
 export default {
   name: 'GMarker',
-
+  emits: ['click'],
+  props: {
+    options: Array
+  },
   setup (props, context) {
     const AMap = inject('AMap').value
     const map = inject('map').value
+    const markerGroup = shallowRef(null)
+    const options = toRef(props, 'options')
+    const animateOption = {
+      zoom: 18,
+      pitch: 60,
+      rotation: 0
+    }
     onMounted(() => {
-      const markerInstanceList = createOptions().map(option => {
-        return getMarker(option)
-      })
+      getMarkerInstanceList(options.value)
 
-      map.add(markerInstanceList)
+      map.add(markerGroup.value)
+    })
+
+    watch(options, (options) => {
+      markerGroup.value.clearOverlays()
+
+      getMarkerInstanceList(options)
+
+      map.add(markerGroup.value)
     })
 
     function getIcon (url) {
@@ -29,30 +45,73 @@ export default {
         icon: getIcon('/images/marker.png'),
         position: option.position,
         offset: [-20, -20],
-        extData: option.myData
+        extData: option.extData
       })
 
       return marker
     }
 
-    function createOptions () {
-      const options = []
-      const xList = [121.43, 121.435, 121.44, 121.445, 121.44]
-      const yList = [31.229, 31.2295, 31.23, 31.2295, 31.23]
-      for (let i = 0; i < 1000; i++) {
-        const num = 0.001 * (Math.random() * i)
-        const x = parseInt(Math.random() * 5)
-        options.push({
-          myData: i,
-          position: [xList[x] + num / 3, yList[x] + num / 6]
+    function getMarkerInstanceList (options) {
+      const markerInstanceList = options.map(option => {
+        const marker = getMarker(option)
+
+        marker.on('click', e => {
+          // todo 不使用遍历实现
+          markerGroup.value.eachOverlay(marker => {
+            marker.setIcon(getIcon('/images/marker.png'))
+          })
+
+          e.target.setIcon(getIcon('/images/marker-active.gif'))
+          const data = e.target.getExtData()
+          const { lat, lng } = e.lnglat
+
+          context.emit('click', {
+            data,
+            position: [lng, lat]
+          })
+
+          // animation
+          const { zoom, pitch, rotation } =
+            option.animateOption || animateOption
+
+          // map.setZoomAndCenter(
+          //   zoom,
+          //   [lng, lat],
+          //   false,
+          //   400
+          // )
+          map.setZoom(zoom, false, 800)
+
+          map.panTo([lng, lat], 800)
+          map.setPitch(pitch, false, 500)
+          // map.setRotation(rotation, false, 500)
+          // console.log(map.getCenter().lng, map.getCenter().lat)
+          // console.log(lng, lat)
         })
-      }
-      return options
+
+        return marker
+      })
+      markerGroup.value = new AMap.OverlayGroup(markerInstanceList)
+    }
+
+    function hide () {
+      markerGroup.value.hide()
+    }
+
+    function show () {
+      markerGroup.value.show()
     }
 
     return {
       map,
-      AMap
+      AMap,
+      markerGroup,
+      hide,
+      show
     }
+  },
+
+  render () {
+    return h('p')
   }
 }

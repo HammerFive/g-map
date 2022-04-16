@@ -1,32 +1,85 @@
-<script setup>
-  import ButtonRepo from '@/components/ButtonRepo.vue'
-</script>
-
 <template>
-  <div class="bg-gray-50">
-    <div
-      class="mx-auto max-w-screen-xl px-4 py-12 sm:px-6 lg:flex lg:items-center lg:justify-between lg:py-16 lg:px-8">
-      <h2
-        class="text-3xl font-extrabold leading-9 tracking-tight text-gray-900 sm:text-4xl sm:leading-10">
-        Ready to dive in?
-        <br>
-        <span class="text-indigo-600">Vite + Vue 3 + Tailwind CSS</span>
-      </h2>
-      <div class="mt-8 flex lg:mt-0 lg:flex-shrink-0">
-        <div class="inline-flex rounded-md shadow">
-          <router-link
-            to="/about"
-            class="inline-flex items-center justify-center rounded-md border border-transparent bg-indigo-600 px-5 py-3 text-base font-medium leading-6 text-white transition duration-150 ease-in-out hover:bg-indigo-500 focus:outline-none">
-            Next Page
-          </router-link>
-        </div>
-        <ButtonRepo />
-      </div>
+  <div
+    class="bg-gray-50"
+    style="height: 100%;">
+    <div class="bg-pink-300 p-1 w-24 button-list">
+      <button
+        class="border-black bg-slate-500 p-1"
+        @click="add">
+        新增点
+      </button>
+      <div />
+      <button
+        class="bg-slate-400 p-1"
+        @click="hide">
+        清除点
+      </button>
+      <div></div>
+      <button
+        class="bg-slate-300 p-1"
+        @click="show">
+        显示点
+      </button>
     </div>
-    <g-map style="height: 600px">
-      <div class="test">123</div>
-      <div class="test">123</div>
-      <g-marker />
+    <g-map ref="map">
+      <g-marker
+        ref="myMarker"
+        :options="markerOptions"
+        @click="test" />
     </g-map>
   </div>
 </template>
+
+<script setup>
+  import projectData from '../source/data'
+
+  import { ref, shallowRef } from '@vue/reactivity'
+
+  const markerOptions = ref()
+  const myMarker = ref()
+  const map = shallowRef()
+
+  markerOptions.value = createOptions()
+
+  function test (e) {
+    console.log(e)
+  }
+  function add () {
+    const projects = projectData.map(project => {
+      return {
+        extData: project,
+        position: [
+          project.longitude,
+          project.latitude
+        ]
+      }
+    })
+    markerOptions.value = projects
+  }
+  function hide () {
+    myMarker.value.hide()
+
+    // map.value.map.setZoom(20, false, 2000)
+
+    // setTimeout(() => {
+    //   map.value.map.setZoom(4, false, 2000)
+    // }, 3000)
+  }
+  function show () {
+    myMarker.value.show()
+  }
+  function createOptions () {
+    const options = []
+    const xList = [121.43, 121.435, 121.44, 121.445, 121.44]
+    const yList = [31.229, 31.2295, 31.23, 31.2295, 31.23]
+    for (let i = 0; i < 4000; i++) {
+      const num = 0.001 * (Math.random() * i)
+      const x = parseInt(Math.random() * 5)
+      options.push({
+        extData: i,
+        position: [xList[x] + num / 3, yList[x] + num / 6]
+      })
+    }
+    return options
+  }
+</script>

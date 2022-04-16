@@ -22,11 +22,33 @@ export default {
       const AMapInstance = await initMap()
       AMap.value = AMapInstance
 
-      map.value = new AMapInstance.Map('map', {})
+      const mapInstance = new AMapInstance.Map('map', {
+        resizeEnable: true,
+        rotateEnable: true,
+        pitchEnable: true,
+        zoom: 4,
+        zooms: [4, 20],
+        viewMode: '3D',
+        buildingAnimation: true,
+        // center: [116.333926, 39.997245],
+        center: [116.397087, 39.916027],
+        mapStyle: 'amap://styles/darkblue'
+      })
 
-      map.value.on('complete', () => {
+      mapInstance.on('complete', () => {
         isMapLoaded.value = true
       })
+      mapInstance.addControl(
+        new AMapInstance.ControlBar({
+          showZoomBar: false,
+          showControlButton: true,
+          position: {
+            right: '10px',
+            bottom: '10px'
+          }
+        })
+      )
+      map.value = mapInstance
     })
     return {
       AMap,

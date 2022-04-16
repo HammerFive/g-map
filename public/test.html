@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <div class="map" id="container"></div>
+  <script src="https://webapi.amap.com/loader.js"></script>
+  <script type="text/javascript" >
+    AMapLoader.load({
+      key:'822c5d6b3d25da7c2f9fe0b6a30d4e1c',
+      version: '2.0', // '2.1Beta'
+      plugins: [
+        'AMap.ToolBar',
+        'AMap.Scale',
+        'AMap.HawkEye',
+        'AMap.MapType',
+        'AMap.Geolocation',
+        'AMap.ControlBar',
+        'AMap.GeoJSON',
+        'AMap.MarkerCluster',
+        'AMap.MouseTool',
+        'AMap.3DTilesLayer'
+      ]
+    }).then((AMap) => {
+      const map = new AMap.Map('container', {
+        resizeEnable: true,
+        rotateEnable: true,
+        pitchEnable: true,
+        zoom: 4,
+        zooms: [4, 20],
+        viewMode: '3D',
+        buildingAnimation: true,
+        // center: [116.333926, 39.997245],
+        center: [116.397087, 39.916027],
+        mapStyle: 'amap://styles/darkblue'
+      })
+      map.addControl(new AMap.Scale())
+      map.addControl(new AMap.ControlBar({
+        showZoomBar: false,
+        showControlButton: true,
+        position: {
+          right: '10px',
+          bottom: '10px'
+        }
+      }))
+      const markerOptions = createOptions()
+    const markerList = markerOptions.map(option => {
+      const marker = new AMap.Marker({
+        icon: new AMap.Icon({
+          size: new AMap.Size(28, 28),
+          image: '/images/marker.png',
+          imageSize: new AMap.Size(28, 28)
+        }),
+        position: option.position,
+        offset: [-20, -20],
+        extData: option.extData
+      })
+
+      marker.on('click', e => {
+        const data = e.target.getExtData()
+        const { lat, lng } = e.lnglat
+
+        map.setZoom(18, false, 800)
+
+        map.panTo([lng, lat], 800)
+        map.setPitch(60, false, 500)
+        })
+
+      return marker
+    })
+    
+    const markerGroup = new AMap.OverlayGroup(markerList)
+
+    map.add(markerGroup)
+
+    })
+
+    function createOptions () {
+    const options = []
+    const xList = [121.43, 121.435, 121.44, 121.445, 121.44]
+    const yList = [31.229, 31.2295, 31.23, 31.2295, 31.23]
+    for (let i = 0; i < 4000; i++) {
+      const num = 0.001 * (Math.random() * i)
+      const x = parseInt(Math.random() * 5)
+      options.push({
+        extData: i,
+        position: [xList[x] + num / 3, yList[x] + num / 6]
+      })
+    }
+    return options
+  }
+    </script>
+  
+</body>
+
+<style>
+  html, body {
+    height: 100%;
+    margin: 0
+  }
+  .map {
+    width: 100%;
+    height: 100%;
+  }
+</style>
+</html>
